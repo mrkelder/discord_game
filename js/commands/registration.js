@@ -61,6 +61,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var config_json_1 = require("../config.json");
 var mongodb_1 = __importDefault(require("../packages/mongodb"));
+var discord_js_1 = require("discord.js");
+var canvas_1 = __importDefault(require("canvas"));
+// FIXME: find out what to put insted of "any" type
 function default_1(obj) {
     var _this = this;
     var args = obj.args, message = obj.message;
@@ -80,16 +83,25 @@ function default_1(obj) {
             var readyName = void 0;
             var _a = __read(readyArgs, 3), name_1 = _a[0], color_1 = _a[1], syst_1 = _a[2];
             if (__spread(name_1).length > 0 && (__spread(color_1).length === 7 && color_1.includes('#') || __spread(color_1).length === 6 && !color_1.includes('#')) && (syst_1 === 'dem' || syst_1 === 'tol')) {
-                readyName = name_1.split('-').join(' ');
+                // If three typed arguments are correct
+                var canvas = canvas_1.default.createCanvas(150, 150);
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = color_1;
+                ctx.fillRect(0, 0, 150, 150);
+                var attachment = new discord_js_1.MessageAttachment(canvas.toBuffer(), 'welcome-image.png');
+                readyName = name_1.split('-').join(' '); // normalising name
                 message.react('✅');
-                message.reply("\u0412\u0430\u0448 \u043F\u0440\u043E\u0444\u0438\u043B\u044C:\n\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435: " + readyName + "\n\u0426\u0432\u0435\u0442: " + color_1 + "\n\u0424\u043E\u0440\u043C\u0430 \u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F: " + (syst_1 === 'dem' ? 'демократия' : 'тоталитаризм') + "\n\n\u0415\u0441\u043B\u0438 \u0432\u044B \u0434\u043E\u043F\u0443\u0441\u0442\u0438\u043B\u0438 \u043E\u0448\u0438\u0431\u043A\u0443 \u043F\u0440\u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438, \u0437\u0430\u0440\u0435\u0433\u0435\u0441\u0442\u0440\u0438\u0440\u0443\u0439\u0442\u0435\u0441\u044C \u0435\u0449\u0435 \u0440\u0430\u0437");
+                message.reply("\u0412\u0430\u0448 \u043F\u0440\u043E\u0444\u0438\u043B\u044C:\n\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435: " + readyName + "\n");
+                message.channel.send('Цвет:', attachment);
+                message.reply("\u0424\u043E\u0440\u043C\u0430 \u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F: " + (syst_1 === 'dem' ? 'демократия' : 'тоталитаризм'));
+                /* eslint-disable-next-line */
                 mongodb_1.default(function (obj) { return __awaiter(_this, void 0, void 0, function () {
-                    var userId, client, db, ObjectID, availableUsers;
+                    var userId, client, db, availableUsers;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
                                 userId = message.author.id;
-                                client = obj.client, db = obj.db, ObjectID = obj.ObjectID;
+                                client = obj.client, db = obj.db;
                                 return [4 /*yield*/, db.collection('users').find({}).toArray()];
                             case 1:
                                 availableUsers = _a.sent();

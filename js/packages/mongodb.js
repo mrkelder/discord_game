@@ -3,9 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var mongodb_1 = require("mongodb");
 var assert_1 = require("assert");
 var colors_1 = require("colors");
-// npm run build && npm run start
-// const client = new MongoClient('mongodb://localhost:27017', { useUnifiedTopology: true });
 var url = 'mongodb://localhost:27017';
+/* eslint-enable */
 function main(func) {
     mongodb_1.MongoClient.connect(url, { useUnifiedTopology: true }, function (err, client) {
         assert_1.strictEqual(null, err);

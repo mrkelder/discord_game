@@ -1,9 +1,12 @@
 import argument from './argumentInt';
 import { reg_channel, test_channel } from '../config.json';
 import mongodb from '../packages/mongodb';
-import { ObjectID } from 'mongodb';
+import { MessageAttachment } from 'discord.js';
+import Canvas from 'canvas';
 
-export default function (obj: argument): void {
+// FIXME: find out what to put insted of "any" type
+
+export default function(obj: argument): void {
   const { args, message } = obj;
   const readyArgs: string[] = args.join('').split('/');
   if (message.channel.name.toLowerCase() === reg_channel || message.channel.name.toLowerCase() === test_channel) {
@@ -21,10 +24,19 @@ export default function (obj: argument): void {
       let readyName: string;
       const [name, color, syst] = readyArgs;
       if ([...name].length > 0 && ([...color].length === 7 && color.includes('#') || [...color].length === 6 && !color.includes('#')) && (syst === 'dem' || syst === 'tol')) {
-        readyName = name.split('-').join(' ');
+        // If three typed arguments are correct
+        const canvas = Canvas.createCanvas(150, 150);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 150, 150);
+        const attachment = new MessageAttachment(canvas.toBuffer(), 'welcome-image.png');
+        readyName = name.split('-').join(' '); // normalising name
         message.react('✅');
-        message.reply(`Ваш профиль:\nНазвание: ${readyName}\nЦвет: ${color}\nФорма правления: ${syst === 'dem' ? 'демократия' : 'тоталитаризм'}\n\nЕсли вы допустили ошибку при регистрации, зарегестрируйтесь еще раз`);
-        mongodb(async (obj: any) => {
+        message.reply(`Ваш профиль:\nНазвание: ${readyName}\n`);
+        message.channel.send('Цвет:', attachment);
+        message.reply(`Форма правления: ${syst === 'dem' ? 'демократия' : 'тоталитаризм'}`);
+        /* eslint-disable-next-line */
+        mongodb(async(obj: any) => {
           // Uploading/updating user's data to the database
           const userId: string = message.author.id;
           const { client, db } = obj;
