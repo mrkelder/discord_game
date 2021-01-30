@@ -3,6 +3,7 @@ import { reg_channel, test_channel } from '../config.json';
 import mongodb from '../packages/mongodb';
 import { MessageAttachment } from 'discord.js';
 import Canvas from 'canvas';
+import replaceRegionColor from '../packages/buildCreator';
 
 /* eslint-disable-next-line */
 export default function(obj: argument): void {
@@ -46,6 +47,7 @@ export default function(obj: argument): void {
               await db.collection('users').insertOne({ user_id: userId, name, color, syst });
               userExists = false;
             }
+            replaceRegionColor(color , userId);
             message.react('✅');
             message.reply(`${userExists ? 'Ваш профиль был обнавлен' : 'Вы зарегестрированы как'}:\nНазвание: ${readyName}\nФорма правления: ${syst === 'dem' ? 'демократия' : 'тоталитаризм'}\nЦвет:`);
             message.channel.send('', attachment);

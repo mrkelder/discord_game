@@ -63,6 +63,7 @@ var config_json_1 = require("../config.json");
 var mongodb_1 = __importDefault(require("../packages/mongodb"));
 var discord_js_1 = require("discord.js");
 var canvas_1 = __importDefault(require("canvas"));
+var buildCreator_1 = __importDefault(require("../packages/buildCreator"));
 function default_1(obj) {
     var _this = this;
     var args = obj.args, message = obj.message;
@@ -98,7 +99,6 @@ function default_1(obj) {
                                 return [4, db.collection('users').find({ user_id: userId }).toArray()];
                             case 2:
                                 availableUsers = _a.sent();
-                                console.log(sameUsers, readyName_1, color_1);
                                 if (!(sameUsers.length === 0 || sameUsers[0].user_id === userId && sameUsers.length === 1)) return [3, 7];
                                 if (!(availableUsers.length > 0)) return [3, 4];
                                 return [4, db.collection('users').updateOne({ user_id: userId }, { $set: { name: name_1, color: color_1, syst: syst_1 } })];
@@ -112,6 +112,7 @@ function default_1(obj) {
                                 userExists_1 = false;
                                 _a.label = 6;
                             case 6:
+                                buildCreator_1.default(color_1, userId);
                                 message.react('✅');
                                 message.reply((userExists_1 ? 'Ваш профиль был обнавлен' : 'Вы зарегестрированы как') + ":\n\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435: " + readyName_1 + "\n\u0424\u043E\u0440\u043C\u0430 \u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F: " + (syst_1 === 'dem' ? 'демократия' : 'тоталитаризм') + "\n\u0426\u0432\u0435\u0442:");
                                 message.channel.send('', attachment_1);
