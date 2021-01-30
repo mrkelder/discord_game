@@ -4,8 +4,7 @@ import mongodb from '../packages/mongodb';
 import { MessageAttachment } from 'discord.js';
 import Canvas from 'canvas';
 
-// FIXME: find out what to put insted of "any" type
-
+/* eslint-disable-next-line */
 export default function(obj: argument): void {
   const { args, message } = obj;
   const readyArgs: string[] = args.join('').split('/');
@@ -22,7 +21,7 @@ export default function(obj: argument): void {
     else if (readyArgs.length === 3) {
       // If user typed in all three required arguments
       const [name, color, syst] = readyArgs;
-      if ([...name].length > 0 && ([...color].length === 7 && color.includes('#') || [...color].length === 6 && !color.includes('#')) && (syst === 'dem' || syst === 'tol')) {
+      if ([...name].length > 0 && ([...color].length === 7 && color.includes('#')) && (syst === 'dem' || syst === 'tol')) {
         // If three typed arguments are correct
         const canvas = Canvas.createCanvas(150, 150);
         const ctx = canvas.getContext('2d');
@@ -36,31 +35,39 @@ export default function(obj: argument): void {
           // Uploading/updating user's data to the database
           const userId: string = message.author.id;
           const { client, db } = obj;
+          const sameUsers = await db.collection('users').find({ $or: [{ name: readyName }, { color }] }).toArray();
           const availableUsers: string[] = await db.collection('users').find({ user_id: userId }).toArray();
-          if (availableUsers.length > 0) {
-            await db.collection('users').updateOne({ user_id: userId }, { $set: { name, color, syst } });
-            userExists = true;
+          if (sameUsers.length === 0 || sameUsers[0].user_id === userId && sameUsers.length === 1) {
+            if (availableUsers.length > 0) {
+              await db.collection('users').updateOne({ user_id: userId }, { $set: { name, color, syst } });
+              userExists = true;
+            }
+            else {
+              await db.collection('users').insertOne({ user_id: userId, name, color, syst });
+              userExists = false;
+            }
+            message.react('✅');
+            message.reply(`${userExists ? 'Ваш профиль был обнавлен' : 'Вы зарегестрированы как'}:\nНазвание: ${readyName}\nФорма правления: ${syst === 'dem' ? 'демократия' : 'тоталитаризм'}\nЦвет:`);
+            message.channel.send('', attachment);
           }
           else {
-            await db.collection('users').insertOne({ user_id: userId, name, color, syst });
-            userExists = false;
+            // If user tried to inherit somebody's name or color
+            message.react('⛔');
+            message.reply('Данные, которые вы ввели, уже заняты другим пользователем.');
           }
-          message.react('✅');
-          message.reply(`${userExists? 'Вы зарегестрированы как' : 'Ваш профиль был обнавлен'}:\nНазвание: ${readyName}\nФорма правления: ${syst === 'dem' ? 'демократия' : 'тоталитаризм'}\nЦвет:`);
-          message.channel.send('', attachment);
           client.close();
         });
       }
       else {
         // If users typed in incorrect data
         message.react('⛔');
-        message.reply('Данные введены неверно. Для помощи введите команду "!reg"');
+        message.reply('Данные введены неверно. Для помощи введите команду "!reg".');
       }
     }
     else {
       // If users typed in data incorrectly
       message.react('⛔');
-      message.reply('Вы ввели не все данные');
+      message.reply('Вы ввели не все данные.');
     }
   }
 }

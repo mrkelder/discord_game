@@ -77,7 +77,7 @@ function default_1(obj) {
         }
         else if (readyArgs.length === 3) {
             var _a = __read(readyArgs, 3), name_1 = _a[0], color_1 = _a[1], syst_1 = _a[2];
-            if (__spread(name_1).length > 0 && (__spread(color_1).length === 7 && color_1.includes('#') || __spread(color_1).length === 6 && !color_1.includes('#')) && (syst_1 === 'dem' || syst_1 === 'tol')) {
+            if (__spread(name_1).length > 0 && (__spread(color_1).length === 7 && color_1.includes('#')) && (syst_1 === 'dem' || syst_1 === 'tol')) {
                 var canvas = canvas_1.default.createCanvas(150, 150);
                 var ctx = canvas.getContext('2d');
                 ctx.fillStyle = color_1;
@@ -86,30 +86,41 @@ function default_1(obj) {
                 var readyName_1 = name_1.split('-').join(' ');
                 var userExists_1;
                 mongodb_1.default(function (obj) { return __awaiter(_this, void 0, void 0, function () {
-                    var userId, client, db, availableUsers;
+                    var userId, client, db, sameUsers, availableUsers;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
                                 userId = message.author.id;
                                 client = obj.client, db = obj.db;
-                                return [4, db.collection('users').find({ user_id: userId }).toArray()];
+                                return [4, db.collection('users').find({ $or: [{ name: readyName_1 }, { color: color_1 }] }).toArray()];
                             case 1:
-                                availableUsers = _a.sent();
-                                if (!(availableUsers.length > 0)) return [3, 3];
-                                return [4, db.collection('users').updateOne({ user_id: userId }, { $set: { name: name_1, color: color_1, syst: syst_1 } })];
+                                sameUsers = _a.sent();
+                                return [4, db.collection('users').find({ user_id: userId }).toArray()];
                             case 2:
+                                availableUsers = _a.sent();
+                                console.log(sameUsers, readyName_1, color_1);
+                                if (!(sameUsers.length === 0 || sameUsers[0].user_id === userId && sameUsers.length === 1)) return [3, 7];
+                                if (!(availableUsers.length > 0)) return [3, 4];
+                                return [4, db.collection('users').updateOne({ user_id: userId }, { $set: { name: name_1, color: color_1, syst: syst_1 } })];
+                            case 3:
                                 _a.sent();
                                 userExists_1 = true;
-                                return [3, 5];
-                            case 3: return [4, db.collection('users').insertOne({ user_id: userId, name: name_1, color: color_1, syst: syst_1 })];
-                            case 4:
+                                return [3, 6];
+                            case 4: return [4, db.collection('users').insertOne({ user_id: userId, name: name_1, color: color_1, syst: syst_1 })];
+                            case 5:
                                 _a.sent();
                                 userExists_1 = false;
-                                _a.label = 5;
-                            case 5:
+                                _a.label = 6;
+                            case 6:
                                 message.react('✅');
-                                message.reply((userExists_1 ? 'Вы зарегестрированы как' : 'Ваш профиль был обнавлен') + ":\n\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435: " + readyName_1 + "\n\u0424\u043E\u0440\u043C\u0430 \u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F: " + (syst_1 === 'dem' ? 'демократия' : 'тоталитаризм') + "\n\u0426\u0432\u0435\u0442:");
+                                message.reply((userExists_1 ? 'Ваш профиль был обнавлен' : 'Вы зарегестрированы как') + ":\n\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435: " + readyName_1 + "\n\u0424\u043E\u0440\u043C\u0430 \u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F: " + (syst_1 === 'dem' ? 'демократия' : 'тоталитаризм') + "\n\u0426\u0432\u0435\u0442:");
                                 message.channel.send('', attachment_1);
+                                return [3, 8];
+                            case 7:
+                                message.react('⛔');
+                                message.reply('Данные, которые вы ввели, уже заняты другим пользователем.');
+                                _a.label = 8;
+                            case 8:
                                 client.close();
                                 return [2];
                         }
@@ -118,12 +129,12 @@ function default_1(obj) {
             }
             else {
                 message.react('⛔');
-                message.reply('Данные введены неверно. Для помощи введите команду "!reg"');
+                message.reply('Данные введены неверно. Для помощи введите команду "!reg".');
             }
         }
         else {
             message.react('⛔');
-            message.reply('Вы ввели не все данные');
+            message.reply('Вы ввели не все данные.');
         }
     }
 }

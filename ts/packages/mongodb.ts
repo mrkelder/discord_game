@@ -3,8 +3,6 @@ import { strictEqual } from 'assert';
 
 const url = 'mongodb://localhost:27017';
 
-// FIXME: find out what to put insted of "any" type
-
 /* eslint-disable */
 interface mongoArgs {
   client: object;
