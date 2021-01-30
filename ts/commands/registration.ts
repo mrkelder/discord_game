@@ -13,15 +13,14 @@ export default function(obj: argument): void {
     // If users types in the channel for registration or in the testing channel
     if (args.length === 0) {
       // If users only typed "!reg"
-      message.reply('Для того, чтобы зарегестрироваться, необходимо ввести комманду со следующими аргументами');
-      message.reply('!reg <название-государства>/<цвет-в-формате-hex>/<форма-правления>');
-      message.reply('Название: если вы хотите, чтобы название вашего государства состояло из нескольких слов, укажите их через знак черты "-"');
-      message.reply('Цвет: цвет задается шестью символами. ');
-      message.reply('Форма правления: всего две опции "dem" и "tol"');
+      message.reply('Для того, чтобы зарегестрироваться, необходимо ввести комманду со следующими аргументами.');
+      message.reply('!reg <название-государства>/<цвет-в-формате-hex>/<форма-правления>.');
+      message.reply('Название: если вы хотите, чтобы название вашего государства состояло из нескольких слов, укажите их через знак черты "-".');
+      message.reply('Цвет: цвет задается в формате hex, например #ffffff.');
+      message.reply('Форма правления: всего две опции "dem" и "tol".');
     }
     else if (readyArgs.length === 3) {
       // If user typed in all three required arguments
-      let readyName: string;
       const [name, color, syst] = readyArgs;
       if ([...name].length > 0 && ([...color].length === 7 && color.includes('#') || [...color].length === 6 && !color.includes('#')) && (syst === 'dem' || syst === 'tol')) {
         // If three typed arguments are correct
@@ -30,25 +29,25 @@ export default function(obj: argument): void {
         ctx.fillStyle = color;
         ctx.fillRect(0, 0, 150, 150);
         const attachment = new MessageAttachment(canvas.toBuffer(), 'welcome-image.png');
-        readyName = name.split('-').join(' '); // normalising name
-        message.react('✅');
-        message.reply(`Ваш профиль:\nНазвание: ${readyName}\n`);
-        message.channel.send('Цвет:', attachment);
-        message.reply(`Форма правления: ${syst === 'dem' ? 'демократия' : 'тоталитаризм'}`);
+        const readyName = name.split('-').join(' '); // normalised name
+        let userExists: boolean;
         /* eslint-disable-next-line */
-        mongodb(async(obj: any) => {
+        mongodb(async (obj: any) => {
           // Uploading/updating user's data to the database
           const userId: string = message.author.id;
           const { client, db } = obj;
-          const availableUsers: string[] = await db.collection('users').find({}).toArray();
+          const availableUsers: string[] = await db.collection('users').find({ user_id: userId }).toArray();
           if (availableUsers.length > 0) {
             await db.collection('users').updateOne({ user_id: userId }, { $set: { name, color, syst } });
-            message.reply('Информация обновлена');
+            userExists = true;
           }
           else {
             await db.collection('users').insertOne({ user_id: userId, name, color, syst });
-            message.reply('Профиль занесен в базу данных');
+            userExists = false;
           }
+          message.react('✅');
+          message.reply(`${userExists? 'Вы зарегестрированы как' : 'Ваш профиль был обнавлен'}:\nНазвание: ${readyName}\nФорма правления: ${syst === 'dem' ? 'демократия' : 'тоталитаризм'}\nЦвет:`);
+          message.channel.send('', attachment);
           client.close();
         });
       }

@@ -63,38 +63,28 @@ var config_json_1 = require("../config.json");
 var mongodb_1 = __importDefault(require("../packages/mongodb"));
 var discord_js_1 = require("discord.js");
 var canvas_1 = __importDefault(require("canvas"));
-// FIXME: find out what to put insted of "any" type
 function default_1(obj) {
     var _this = this;
     var args = obj.args, message = obj.message;
     var readyArgs = args.join('').split('/');
     if (message.channel.name.toLowerCase() === config_json_1.reg_channel || message.channel.name.toLowerCase() === config_json_1.test_channel) {
-        // If users types in the channel for registration or in the testing channel
         if (args.length === 0) {
-            // If users only typed "!reg"
-            message.reply('Для того, чтобы зарегестрироваться, необходимо ввести комманду со следующими аргументами');
-            message.reply('!reg <название-государства>/<цвет-в-формате-hex>/<форма-правления>');
-            message.reply('Название: если вы хотите, чтобы название вашего государства состояло из нескольких слов, укажите их через знак черты "-"');
-            message.reply('Цвет: цвет задается шестью символами. ');
-            message.reply('Форма правления: всего две опции "dem" и "tol"');
+            message.reply('Для того, чтобы зарегестрироваться, необходимо ввести комманду со следующими аргументами.');
+            message.reply('!reg <название-государства>/<цвет-в-формате-hex>/<форма-правления>.');
+            message.reply('Название: если вы хотите, чтобы название вашего государства состояло из нескольких слов, укажите их через знак черты "-".');
+            message.reply('Цвет: цвет задается в формате hex, например #ffffff.');
+            message.reply('Форма правления: всего две опции "dem" и "tol".');
         }
         else if (readyArgs.length === 3) {
-            // If user typed in all three required arguments
-            var readyName = void 0;
             var _a = __read(readyArgs, 3), name_1 = _a[0], color_1 = _a[1], syst_1 = _a[2];
             if (__spread(name_1).length > 0 && (__spread(color_1).length === 7 && color_1.includes('#') || __spread(color_1).length === 6 && !color_1.includes('#')) && (syst_1 === 'dem' || syst_1 === 'tol')) {
-                // If three typed arguments are correct
                 var canvas = canvas_1.default.createCanvas(150, 150);
                 var ctx = canvas.getContext('2d');
                 ctx.fillStyle = color_1;
                 ctx.fillRect(0, 0, 150, 150);
-                var attachment = new discord_js_1.MessageAttachment(canvas.toBuffer(), 'welcome-image.png');
-                readyName = name_1.split('-').join(' '); // normalising name
-                message.react('✅');
-                message.reply("\u0412\u0430\u0448 \u043F\u0440\u043E\u0444\u0438\u043B\u044C:\n\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435: " + readyName + "\n");
-                message.channel.send('Цвет:', attachment);
-                message.reply("\u0424\u043E\u0440\u043C\u0430 \u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F: " + (syst_1 === 'dem' ? 'демократия' : 'тоталитаризм'));
-                /* eslint-disable-next-line */
+                var attachment_1 = new discord_js_1.MessageAttachment(canvas.toBuffer(), 'welcome-image.png');
+                var readyName_1 = name_1.split('-').join(' ');
+                var userExists_1;
                 mongodb_1.default(function (obj) { return __awaiter(_this, void 0, void 0, function () {
                     var userId, client, db, availableUsers;
                     return __generator(this, function (_a) {
@@ -102,35 +92,36 @@ function default_1(obj) {
                             case 0:
                                 userId = message.author.id;
                                 client = obj.client, db = obj.db;
-                                return [4 /*yield*/, db.collection('users').find({}).toArray()];
+                                return [4, db.collection('users').find({ user_id: userId }).toArray()];
                             case 1:
                                 availableUsers = _a.sent();
-                                if (!(availableUsers.length > 0)) return [3 /*break*/, 3];
-                                return [4 /*yield*/, db.collection('users').updateOne({ user_id: userId }, { $set: { name: name_1, color: color_1, syst: syst_1 } })];
+                                if (!(availableUsers.length > 0)) return [3, 3];
+                                return [4, db.collection('users').updateOne({ user_id: userId }, { $set: { name: name_1, color: color_1, syst: syst_1 } })];
                             case 2:
                                 _a.sent();
-                                message.reply('Информация обновлена');
-                                return [3 /*break*/, 5];
-                            case 3: return [4 /*yield*/, db.collection('users').insertOne({ user_id: userId, name: name_1, color: color_1, syst: syst_1 })];
+                                userExists_1 = true;
+                                return [3, 5];
+                            case 3: return [4, db.collection('users').insertOne({ user_id: userId, name: name_1, color: color_1, syst: syst_1 })];
                             case 4:
                                 _a.sent();
-                                message.reply('Профиль занесен в базу данных');
+                                userExists_1 = false;
                                 _a.label = 5;
                             case 5:
+                                message.react('✅');
+                                message.reply((userExists_1 ? 'Вы зарегестрированы как' : 'Ваш профиль был обнавлен') + ":\n\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435: " + readyName_1 + "\n\u0424\u043E\u0440\u043C\u0430 \u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u044F: " + (syst_1 === 'dem' ? 'демократия' : 'тоталитаризм') + "\n\u0426\u0432\u0435\u0442:");
+                                message.channel.send('', attachment_1);
                                 client.close();
-                                return [2 /*return*/];
+                                return [2];
                         }
                     });
                 }); });
             }
             else {
-                // If users typed in incorrect data
                 message.react('⛔');
                 message.reply('Данные введены неверно. Для помощи введите команду "!reg"');
             }
         }
         else {
-            // If users typed in data incorrectly
             message.react('⛔');
             message.reply('Вы ввели не все данные');
         }
